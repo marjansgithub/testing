@@ -1,0 +1,61 @@
+{% load staticfiles %}
+<!Doctype html>
+<html>
+    <head>
+       <title>login and re</title>
+       <link rel="stylesheet" href="{% static 'login/css/styles.css' %}">
+       <script src="https://use.typekit.net/iii7xtz.js"></script>
+       <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    </head>
+    <body>
+      <div id="wrapper">
+      <p><a href= "/logout">logout</a></p>
+        <h1>Success! Welcome, {{ request.session.first_name }}!{{user.id}}</h1>
+
+        <ul>    
+          <li><a href="/add_book_review/{{user.id}}"> ADD BOOK and Review</a></li>
+          <li><a href="/">Logout</a></li>
+        </ul>
+
+
+        <h3>Recent book reviews:</h3>
+
+
+        <!-- the result of a querry set with 3 reviews -->
+        {% if all_review_3 %}
+        <ul class="messages">
+          {% for review in all_review_3 %}       
+          <li>
+          <div >
+              <ul>
+              <li><a href="/each_book/{{review.book_id}}" >{{review.book.book_title}}</a></li>
+              <li>{{review.rating}}</li>
+              <li><a href="/user_info/{{review.user_id}}">{{review.user.first_name}} </a><span> says: </span>{{review.review_text}}</li>
+              <li>{{review.created_at}}</li>
+              
+          </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        <p>---------------------------------------------------------</p>
+
+        <h5>Other Books with review</h5>
+        {% if all_review %}
+        <ul class="messages">
+          {% for review in all_review %}       
+          <li>
+          <div >
+              <ul>
+              <li><a href="/each_book/{{review.book_id}}" >{{review.book.book_title}}</a></li>
+              </ul>
+          </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+      </div>
+    </body>
+</html>

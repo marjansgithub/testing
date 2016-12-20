@@ -1,0 +1,80 @@
+{% load staticfiles %}
+<!Doctype html>
+<html>
+    <head>
+       <title>Each BOOK</title>
+       <link rel="stylesheet" href="{% static 'login/css/styles.css' %}">
+       <script src="https://use.typekit.net/iii7xtz.js"></script>
+       <script>try{Typekit.load({ async: true });}catch(e){}</script>
+     </head>
+    </head>
+    <body>
+    
+      <div id="wrapper">
+        <div class="register">
+
+        <!-- for checking messages with flash -->
+  
+        <ul>    
+          <li><a href="/success"> Home</a></li>
+          <li><a href="/">Logout</a></li>
+        </ul>
+
+        <br>
+        <ul>    
+          <li> {{book.id}}</li>
+          <li><bold>{{book.book_title}}</bold></li>
+          <li>Author: {{book.book_author}}</li>
+        </ul>
+        <h4>Reviews</h4>
+        <!-- #other reviews -->
+        {% if all_review_except_one %}
+          {% for review in all_review_except_one %}  
+            
+          <div >
+              <ul>
+              <li>Rating: {{review.rating}}</li>
+              <li>First Name:<a href="/user_info/{{review.user_id}}">{{review.user.first_name}} </a><span> *says: *</span>{{review.review_text}}</li>
+              <li>{{review.created_at}}</li>
+              <!-- <li><a href= "/delete_review/{{review.id}}">Delete This Review</a></li> -->
+              </ul>
+              <p>^^^^^^^^^^^^^^^^^^</p>
+          </div>
+          
+          {% endfor %}
+        {% endif %}
+        
+        {% if all_review_one_book %}
+        <ul class="messages">
+          {% for review in all_review_one_book %}       
+          <div >
+              <ul>
+              <li>Rating: {{review.rating}}</li>
+              
+              <li>First Name:<a href="/user_info/{{review.user_id}}">{{review.user.first_name}} </a><span> *says: *</span>{{review.review_text}}</li>
+              <li>{{review.created_at}}</li>
+              <li><a href= "/delete_review/{{review.id}}">Delete This Review</a></li>
+              </ul>
+          </div>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <h3>Add a Review for this book:</h3>
+        
+        <form action="/add_review_each_book_process/{{book.id}}" method="post">
+        {% csrf_token %}
+        <br>
+        
+        <label>Review:</label>
+        <input type="textarea" name="review_text" row= "3" col="15" placeholder="PLease Submit a Review"><br>
+        <br>
+        <label>Rating:</label>
+        <input type="text" name="rating" placeholder="enter a number (1 through 5)"><br>
+        <br>
+        <input type="submit" value="Submit Review">
+        </form>
+      
+      </div>
+    </div>
+    </body>
+</html>

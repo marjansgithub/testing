@@ -1,0 +1,49 @@
+{% load staticfiles %}
+<!Doctype html>
+<html>
+    <head>
+       <title>User Info</title>
+       <link rel="stylesheet" href="{% static 'login/css/styles.css' %}">
+       <script src="https://use.typekit.net/iii7xtz.js"></script>
+       <script>try{Typekit.load({ async: true });}catch(e){}</script>
+     </head>
+    </head>
+    <body>
+    
+      <div id="wrapper">
+        <div class="register">
+
+        <!-- for checking messages with flash -->
+  
+        <ul>    
+          <li><a href="/success"> Home</a></li>
+          <li><a href="/">Logout</a></li>
+          <li><a href="/add_book_review/{{user.id}}">Add Book and Review</a></li>
+        </ul>
+
+        <br>
+        <ul>    
+          <li> {{user.id}}</li>
+          <li><bold>Name: {{user.first_name}} {{user.last_name}}</bold></li>
+          <li>Email: {{user.email}}</li>
+          <li>Total review: </li>
+        </ul>
+        <h4>Posted Reviews on the following books:</h4>
+        {% if user_book_reviewed  %}
+        <ul class="messages">
+          {% for book in user_book_reviewed  %} 
+                  
+          <div >
+              <ul>
+              <li><a href="/each_book/{{book.id}}">{{book.book_title}} </a></li>
+              </ul>
+          </div>
+            
+          {% endfor %}
+        </ul>
+        {% endif %}
+        
+      </div>
+    </div>
+    </body>
+</html>
