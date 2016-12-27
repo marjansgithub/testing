@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
+from django.db.models import F
 import re, bcrypt
 
 passRegex = re.compile(r'^(?=.{8,15}$)(?=.*[A-Z])(?=.*[0-9]).*$')
@@ -33,7 +34,7 @@ class UserManager(models.Manager):
 		else:
 			pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 			new_user = User.objects.create(first_name=first_name, last_name=last_name, email=email, password=pw_hash)
-
+			user_count=0
 		return (True, new_user)
 
 	def login(self, email, password):
@@ -64,38 +65,47 @@ class User(models.Model):
 	password = models.CharField(max_length=255)
 	created_at = models.DateTimeField(auto_now_add = True)
 	updated_at = models.DateTimeField(auto_now = True)
+	user_count = models.IntegerField(default=0, blank=True)
 	objects = UserManager()
 
+class QuoteManager(models.Manager):
+	def add_quote(self, quote_author, quote_text, user):
+		errors=[]
+		if (len(quote_author) < 4):
+			errors.append("Quotes author name must be more than 3 characters")
+		if (len(quote_text) < 11):
+			errors.append("Text area needs to be more than 10 characters")
+		if len(errors) is not 0:
+			return (False, errors)
+		else:
+			new_quote = Quote.objects.create(quote_author=quote_author, quote_text=quote_text, user_id=user)
+			new_count = User.objects.get(id=user)
+			new_count.user_count = F('user_count') + 1
+			new_count.save()
+		return(True, new_quote)
 
-class BookManager(models.Manager):
-	def add_book(self, book_title, book_author, user):
-		# new_book = Book.objects.create(book_title=book_title, book_author=book_author, user=user)
-		# print new_book.book_title, new_book.book_author
-		pass
-
-class Book(models.Model):
-	book_title = models.CharField(max_length=255, blank=True, null=True)
-	book_author = models.CharField(max_length=45, blank=True, null=True)
-	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	objects = BookManager()
-
-class ReviewManager(models.Manager):
-	def add_review():
-		pass
-	def display_review():
-		pass
-	def delete_review():
-		pass
-
-class Review(models.Model):
-	review_text = models.TextField(max_length=1000, blank=True, null=True)
-	rating = models.CharField(max_length=2, blank=True, null=True)
+class Quote(models.Model):
+	quote_text = models.TextField(max_length=1000, blank=True, null=True)
+	quote_author = models.CharField(max_length=45, blank=True, null=True)
 	created_at = models.DateTimeField(auto_now_add = True)
 	updated_at = models.DateTimeField(auto_now = True)
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	book = models.ForeignKey(Book, on_delete=models.CASCADE)
-	objects = ReviewManager()
+	objects = QuoteManager()
+ 
+class FaveManager(models.Manager):
+	def add_fave(self, user, quote, quote_text, quote_author):
+		new_fave=Fave.objects.create(user_id=user, quote_id=quote, quote_text=quote_text, quote_author=quote_author)
+		print new_fave.id, new_fave.user.id, new_fave.quote.id,"$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+		return (new_fave)	
 
+class Fave(models.Model):
+	quote_text = models.TextField(max_length=1000, blank=True, null=True)
+	quote_author = models.CharField(max_length=45, blank=True, null=True)
+	created_at = models.DateTimeField(auto_now_add = True)
+	updated_at = models.DateTimeField(auto_now = True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	quote = models.ForeignKey(Quote, on_delete=models.CASCADE)
+	objects = FaveManager()
 
 
 

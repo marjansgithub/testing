@@ -16,26 +16,24 @@
         <!-- for checking messages with flash -->
   
         <ul>    
-          <li><a href="/success"> Home</a></li>
-          <li><a href="/">Logout</a></li>
-          <li><a href="/add_book_review/{{user.id}}">Add Book and Review</a></li>
+          <li><a style="color:blue;" href="/quotes"> Home</a></li>
+          <li><a style="color:blue;" href="/">Logout</a></li>
         </ul>
 
         <br>
         <ul>    
-          <li> {{user.id}}</li>
-          <li><bold>Name: {{user.first_name}} {{user.last_name}}</bold></li>
-          <li>Email: {{user.email}}</li>
-          <li>Total review: </li>
+          <!-- <li> {{user.id}}</li> -->
+          <li><bold>Posted by: {{user.first_name}}</bold></li>
+          <li>Total quote: {{user.user_count}}</li>
         </ul>
-        <h4>Posted Reviews on the following books:</h4>
-        {% if user_book_reviewed  %}
+        <h4>Quotes:</h4>
+        {% if user_quote  %}
         <ul class="messages">
-          {% for book in user_book_reviewed  %} 
+          {% for quote in user_quote  %} 
                   
           <div >
               <ul>
-              <li><a href="/each_book/{{book.id}}">{{book.book_title}} </a></li>
+              <li><span style="color:red;">{{quote.quote_author}}</span>**{{quote.quote_text}}</li>
               </ul>
           </div>
             

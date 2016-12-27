@@ -1,0 +1,69 @@
+{% load staticfiles %}
+<!Doctype html>
+<html>
+    <head>
+       <title>login and re</title>
+       <link rel="stylesheet" href="{% static 'login/css/styles.css' %}">
+       <script src="https://use.typekit.net/iii7xtz.js"></script>
+       <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    </head>
+    <body>
+      <div id="wrapper">
+        <p><a style="color:blue;" href= "/logout">logout</a></p>
+      <!-- @clean up user.id -->
+        <h1>Success! Welcome, {{ request.session.first_name }}!</h1>
+        {% if messages %}
+          <ul class="messages">
+          {% for msg in messages %}       
+            <li>
+              <div >
+              {{msg}}
+              </div>
+            </li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+        <h3>Quotable quotes</h3>
+        {% if new_quote %}
+          <ul class="messages">
+          {% for quote in new_quote  %}    
+            <div>
+            {{quote.quote_author}}: {{quote.quote_text}}
+              <button><a style="color:blue;" href="/add_my_fave/{{quote.id}}" >Add to my list</a></button>
+              <br>
+            Posted by: <a style="color:blue;" href="/users/{{quote.user.id}}"> {{quote.user.first_name}}</a>
+            </div>
+          {% endfor %}
+          </ul>
+        {% endif %}
+    
+        <h3>Your Favorites:</h3>
+          {% if new_fave %}
+          <ul class="register">
+            {% for fave in new_fave  %} 
+              <div >
+                  {{fave.quote_author}}: {{fave.quote_text}}
+                <button><a style="color:blue;" href="/remove_my_fave/{{fave.id}}" >Remove from my list</a></button><br>
+                <a style="color:blue;" href="/users/{{fave.user.id}}"> {{fave.quote.user.first_name}}</a>
+              </div>
+            {% endfor %}
+          </ul>
+            {% endif %}
+          
+        <div class="register">
+          <form action="add_my_quote_process" method="post">
+          {% csrf_token %}
+            <br>
+            <p>Contribute a code</p>
+            <input type="hidden" name="id" value="{{user.id}}">
+            <lable> Quoted By:</lable>
+            <input type= "text" name="quote_author" placeholder="Quote's Author":><br>
+            <lable> Message:</lable>
+            <input textarea= "text" name="quote_text" placeholder="Enter the content of the quote:" row="5" col="15"> 
+            <br>
+            <input type="submit" value="Submit your quote">
+          </form>
+
+      </div>
+    </body>
+</html>

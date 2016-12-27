@@ -1,98 +1,80 @@
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib import messages
-from .models import User, Book, Review
+from .models import User, Quote, Fave
+
 
 def index(request):
 	return render(request, "login/index.html")
 
-def success(request):
-	if not 'first_name' in request.session :
+def quotes(request):
+	excluded_list=[]
+	if not 'id' in request.session :
 		return redirect('/')
 	else:
 		first_name = request.session['first_name']
 		user = User.objects.filter(first_name=first_name).get()
-		all_review_3 = Review.objects.all().order_by('created_at').reverse()[:3]
-		all_review = Review.objects.all()[:20]
-		context = { 'user': user, 'all_review':all_review, 'all_review_3':all_review_3}	
-		return render(request, "login/success.html", context)	
+		print user.id,"user logged in"
+		user_new = Fave.objects.filter(user_id=user.id)
+		
+		if user_new: 
+			user_new_list = list(user_new)
+			x= len(list(user_new))
+			print x
+			for i in range (0, len(list(user_new))):
+				excluded_list.append(user_new[i].quote.id)
+				print i, user_new[i].id, user_new[i].quote.id,excluded_list
 
-def add_book_review(request,id):
-	user = User.objects.get(id=id)	
-	context = { 'user': user}
-	return render(request, "login/add_book_review.html", context)
+		print user.id,"!!!!!!!!!!!!!!!!!!!!!!!!!"
+		# new_quote = Quote.objects.exclude(id=user_new.user.id)
+		new_quote = Quote.objects.exclude(id__in=excluded_list)
+		print new_quote,"print user_new[0].quote_id"
+		new_fave = Fave.objects.filter(user_id=user.id)
+		print new_fave
+		
+		context = { 'user':user, 
+				'new_quote':new_quote, 
+				'new_fave':new_fave,}	
+		return render(request, "login/quotes.html", context)
 
-def add_book_review_process(request, id):
-	book_title = request.POST.get('book_title')
-	print book_title, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
-	book_author = request.POST.get('book_author')
+def add_my_quote_process(request):
 	
-	user = User.objects.filter(id=id)
-	print  "777777777777777777777777777777777"
+	user = request.POST.get('id')
+	quote_author = request.POST['quote_author']
+	quote_text = request.POST['quote_text']
+	result = Quote.objects.add_quote(quote_author, quote_text, user)
+	if result[0]==True:
+		# request.session['first_name'] = result[1][0].first_name
+		print result
+		return redirect('/quotes')
+	else:
+		messages.add_message(request, messages.WARNING, result[1][0])
+		return redirect('/quotes')
+
+def users(request, id):
 	
-	new_book = Book.objects.create(book_title=book_title, book_author=book_author, user_id=user[0].id)
-	print "*********", new_book.book_title, new_book.book_author, new_book.id, new_book.user_id, user[0].id
-	b = new_book.id
-	u = user[0].id
-	# book = Book.objects.filter(id=new_book.id)
-	# new_review = Review.objects.create(review_text=review_text, rating=rating, user_id=user[0].id, book_id=b)
-	# print "new_review",new_review.rating, new_review.review_text, new_review.id, new_review.user_id, new_review.book_id
-	new_review = input_review(request, u, b)
-	context = {'new_review': new_review, 'new_book':new_book}
-	print new_book.id, "printing new_book id"
-	return redirect('/each_book/{}'.format(b))
-
-def input_review(request, user_id, book_id):
-	review_text = request.POST.get('review_text')
-	rating = request.POST.get('rating')
-	new_review = Review.objects.create(review_text=review_text, rating=rating, user_id=user_id, book_id=book_id)
-	print "new_review",new_review.rating, new_review.review_text, new_review.id, new_review.user_id, new_review.book_id
-	return (new_review)
-
-def add_review_each_book_process(request, id):
-	print "iam here"
-	book_user = Book.objects.get(id=id)
-	print book_user,"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", book_user.user_id
-	u = book_user.user_id
-	b = id
-	new_review = input_review(request, u, b)
-	return redirect('/each_book/{}'.format(b))
-
-
-def each_book(request, id):
-	book = Book.objects.get(id=id)
-	# print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",book.id
-	all_review_one_book = Review.objects.filter(book_id=id)	
-
-	all_review_except_one = Review.objects.exclude(book_id=id)[:3]	
-	context = { 'book': book,
-				 'all_review_one_book':all_review_one_book, 
-				 'all_review_except_one':all_review_except_one}
-
-
-	print all_review_except_one,"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	return render(request, "login/each_book.html", context)
-
-def user_info(request,id):
 	user = User.objects.get(id=id)
+	quote = Quote.objects.filter(user_id=id)
+	# print user_quote[0], "%%%%%%%%%%%%%%%%%"
+	context = {'user':user, 'user_quote':quote }
+	return render(request, "login/users.html", context)
 
-	print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",user.first_name
-	user_book_reviewed = Book.objects.filter(user_id=id)
+def add_my_fave(request, id):
+	# global id_to_be_removed
+	first_name = request.session['first_name']
+	user = User.objects.filter(first_name=first_name).get()
+	print user.id, "yyyyyyyyyyyy"
+	quote= Quote.objects.get(id=id)
 	
-	# for i in  user_book_reviewed[0]:
-	# 	print user_book_reviewed[0].book_title
+	# print quote.id, quote.user.id, "llllllll"
+	# print quote.user.id, quote.id, quote.quote_text,  "^^^^^^^^^^^^^^^^^"
+	new_fave=Fave.objects.add_fave(user.id, quote.id, quote.quote_text,  quote.quote_author)
 	
-	# all_review_one_book = Review.objects.filter(book_id=id)	
-	context = { 'user': user, 'user_book_reviewed': user_book_reviewed }
-	return render(request, "login/user_info.html", context)
+	# print new_fave.id, new_fave.user.id, new_fave.quote.id, new_fave.quote_text, new_fave.quote_author,"{{{{{{{{{{{{{{{{{{{{{{{{"
+	return redirect('/quotes')
 
-def delete_review(request,id):
-	print id,"((((((((((((((((((((((((((((("
-	review_object = Review.objects.get(id=id)
-	b = review_object.book_id
-	Review.objects.get(id=id).delete()
-	
-	
-	return redirect ('/each_book/{}'.format(b))
+def remove_my_fave(request, id):
+	Fave.objects.get(id=id).delete()
+	return redirect('/quotes')
 
 def logout(request)	:
 	del request.session['first_name']
@@ -107,7 +89,7 @@ def register_process(request):
 			request.session['first_name'] = result[1].first_name
 			print result, "*******************************************************"
 			# request.session.pop('errors')
-			return redirect('/success')
+			return redirect('/quotes')
 		else:
 			messages.add_message(request, messages.WARNING, result[1][0])
 			return redirect('/')
@@ -121,12 +103,15 @@ def login_process(request):
 
 	if result[0] == True:
 		request.session['first_name'] = result[1][0].first_name
+		request.session['id'] = result[1][0].id
+		print request.session['id'],"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+
 		# We have result[1][0] this refers to the results of the query (user query returned) and index of zero which is what we just unwrapped.
-		return redirect('/success')
+		return redirect('/quotes')
 	else:
 		messages.add_message(request, messages.WARNING, result[1][0])
 
 		# request.session['errors'] = result[1]
 		return redirect('/')
-
 
